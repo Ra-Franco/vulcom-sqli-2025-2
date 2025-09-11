@@ -30,10 +30,16 @@ app.get("/", (req, res) => {
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  // CONSULTA SQL VULNERÁVEL 🚨
-  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+  /*
+    No caso do SQLite, o caractere ? é usado para marcar o lugar dos parâmetros. Outros bancos de dados podem utilizar convenções diferente, como $0, $01, etc.
+  */
+  const query = `SELECT * FROM users WHERE username = ? AND password = ?`;
 
-  db.all(query, [], (err, rows) => {
+  /*
+    Os valores dos pÂrmetros são passados em db.aall no segundo argumeento, como um vetor. Tais valores são sanitizados antes de serem incorporados a consulta.
+  */
+
+  db.all(query, [username, password], (err, rows) => {
     if (err) {
       return res.send("Erro no servidor");
     }
